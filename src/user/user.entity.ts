@@ -1,5 +1,12 @@
+import { Subscription } from 'src/subscription/subscription.entity';
 import { Roles } from 'src/types/user.types';
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  OneToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity('users')
 export class User {
@@ -29,4 +36,11 @@ export class User {
 
   @Column()
   role: Roles;
+
+  @OneToOne(() => Subscription, (subscription) => subscription.user, {
+    cascade: true,
+    eager: true,
+  })
+  @JoinColumn()
+  subscription: Subscription;
 }

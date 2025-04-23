@@ -6,6 +6,9 @@ import { typeOrmConfigs } from './config/typeorm.config';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
+import { SubscriptionModule } from './subscription/subscription.module';
+import { SubscriptionPlanModule } from './subscription-plan/subscription-plan.module';
+import { PaymentModule } from './payment/payment.module';
 
 @Module({
   imports: [
@@ -17,6 +20,9 @@ import { UserModule } from './user/user.module';
     }),
     AuthModule,
     UserModule,
+    SubscriptionModule,
+    SubscriptionPlanModule,
+    PaymentModule,
   ],
   controllers: [AppController],
   providers: [AppService],
