@@ -1,14 +1,8 @@
 import { SubscriptionPlan } from 'src/subscription-plan/subscription-plan.entity';
 import { Subscription } from 'src/subscription/subscription.entity';
 import { PaymentStatuses } from 'src/types/payment.types';
-import { Roles } from 'src/types/user.types';
-import {
-  Column,
-  Entity,
-  ManyToOne,
-  OneToMany,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+import { User } from 'src/user/user.entity';
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('payment')
 export class Payment {
@@ -38,4 +32,7 @@ export class Payment {
     (subscriptionPlan) => subscriptionPlan.payments,
   )
   subscriptionPlan: SubscriptionPlan;
+
+  @ManyToOne(() => User, (user) => user.payments)
+  user: User;
 }

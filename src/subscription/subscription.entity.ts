@@ -6,6 +6,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
   ManyToOne,
   OneToMany,
   OneToOne,
@@ -30,6 +31,7 @@ export class Subscription {
   isActive: boolean;
 
   @OneToOne(() => User, (user) => user.subscription)
+  @JoinColumn()
   user: User;
 
   @ManyToOne(

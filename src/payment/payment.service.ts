@@ -26,14 +26,24 @@ export class PaymentService {
 
   async confirmSubscription(email: string, stripeId: string) {
     const customer = await this.userRepo.findOneBy({ email });
-    const subscription = await this.subscriptionRepo.findOne({
-      where: { user: customer! },
-    });
 
-    const payment = await this.paymentRepo.findOne({
-      where: { subscription: subscription!, status: PaymentStatuses.PENDING },
-    });
+    if (!customer) throw new NotFoundException('User not found');
 
+    let subscription = await this.subscriptionRepo
+      .createQueryBuilder('s')
+      .leftJoinAndSelect('s.user', 'user')
+      .leftJoinAndSelect('s.payments', 'payments')
+      .where('user.id = :user', { user: customer.id })
+      .getOne();
+
+    const payment = await this.paymentRepo
+      .createQueryBuilder('p')
+      .innerJoinAndSelect('p.subscription', 'subscription')
+      .where('subscription.user = :user', { user: customer.id })
+      .andWhere('p.status = :status', { status: 'PENDING' })
+      .getOne();
+
+    console.log({ payment, customer });
     const now = new Date();
     const future = new Date();
     future.setMonth(future.getMonth() + 3);
@@ -76,5 +86,14 @@ export class PaymentService {
     if (!payment) throw new NotFoundException('Not found');
 
     if (payment.status === PaymentStatuses.PAID) return { paid: true };
+  }
+  async getUserPayments(userId: number) {
+    const payments = await this.paymentRepo
+      .createQueryBuilder('p')
+      .innerJoinAndSelect('p.subscription', 'subscription')
+      .leftJoinAndSelect('subscription.subscriptionPlan', 'plan')
+      .where('subscription.user = :user', { user: userId })
+      .getMany();
+    return payments;
   }
 }

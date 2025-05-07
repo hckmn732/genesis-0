@@ -10,12 +10,16 @@ import {
   Req,
   Res,
 } from '@nestjs/common';
+import { UseGuards } from '@nestjs/common';
+
 import { IncomingMessage } from 'http';
 import { StripeEventType } from 'src/types/payment.types';
 import Stripe from 'stripe';
 import { PaymentService } from './payment.service';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
 @Controller('payment')
+@UseGuards(JwtAuthGuard)
 export class PaymentController {
   constructor(private readonly paymentService: PaymentService) {}
   private stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
@@ -52,5 +56,13 @@ export class PaymentController {
       default:
         console.log(`Unhandled event type ${event.type}`);
     }
+  }
+  @Get('history')
+  async getHistory(@Req() { user }) {
+    if (!user) {
+      throw new Error('Utilisateur non authentifié');
+    }
+
+    return this.paymentService.getUserPayments(user.id);
   }
 }

@@ -1,3 +1,4 @@
+import { Payment } from 'src/payment/payment.entity';
 import { Subscription } from 'src/subscription/subscription.entity';
 import { Roles } from 'src/types/user.types';
 import {
@@ -5,6 +6,7 @@ import {
   Entity,
   JoinColumn,
   OneToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
@@ -37,10 +39,15 @@ export class User {
   @Column()
   role: Roles;
 
+  // ✅ Relation vers la souscription (1:1)
   @OneToOne(() => Subscription, (subscription) => subscription.user, {
     cascade: true,
     eager: true,
   })
   @JoinColumn()
   subscription: Subscription;
+
+  // ✅ Relation vers les paiements (1:N)
+  @OneToMany(() => Payment, (payment) => payment.user)
+  payments: Payment[];
 }
