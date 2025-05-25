@@ -7,6 +7,7 @@ import {
   CreateDateColumn,
   Entity,
   JoinColumn,
+  ManyToMany,
   ManyToOne,
   OneToMany,
   OneToOne,
@@ -29,6 +30,8 @@ export class Subscription {
 
   @Column()
   isActive: boolean;
+  @Column({ nullable: true })
+  stripeSubscriptionId: string;
 
   @OneToOne(() => User, (user) => user.subscription)
   @JoinColumn()

@@ -46,6 +46,8 @@ export class SubscriptionService {
         isActive: false,
         user,
       });
+    } else {
+      this.cancelStripeSubscription(subscription.stripeSubscriptionId);
     }
     subscription.subscriptionPlan = plan;
 
@@ -109,42 +111,29 @@ export class SubscriptionService {
       relations: ['subscriptionPlan'],
     });
   }
-  // async changePlan(userId: number, newPlanId: number) {
-  //   // 1. On récupère l'abonnement de l'utilisateur avec le plan actuel
-  //   const subscription = await this.subscriptionRepo.findOne({
-  //     where: { user: { id: userId } },
-  //     relations: ['user', 'subscriptionPlan'],
-  //   });
 
-  //   if (!subscription) {
-  //     throw new NotFoundException('Abonnement introuvable');
-  //   }
+  async cancelStripeSubscription(stripeId: string) {
+    if (stripeId) {
+      try {
+        await this.stripe.subscriptions.cancel(stripeId);
+      } catch (error) {
+        console.error('Erreur Stripe:', error);
+        return;
+      }
+    }
+  }
 
-  //   // 2. On récupère le nouveau plan
-  //   const newPlan = await this.planRepo.findOne({
-  //     where: { id: newPlanId },
-  //   });
-
-  //   if (!newPlan) {
-  //     throw new NotFoundException('Nouveau plan introuvable');
-  //   }
-
-  //   // 3. Mise à jour du plan de l'abonnement
-  //   subscription.subscriptionPlan = newPlan;
-
-  //   // 4. Sauvegarde
-  //   await this.subscriptionRepo.save(subscription);
-
-  //   return subscription;
-  // }
   async cancelSubscription(userId: number): Promise<{ message: string }> {
     const subscription = await this.subscriptionRepo.findOne({
       where: { user: { id: userId } },
+      relations: ['user'],
     });
 
     if (!subscription) {
       throw new NotFoundException('Aucun abonnement à annuler');
     }
+
+    await this.cancelStripeSubscription(subscription.stripeSubscriptionId);
 
     subscription.isActive = false;
     subscription.endDate = new Date();
@@ -152,17 +141,22 @@ export class SubscriptionService {
 
     return { message: 'Abonnement annulé avec succès' };
   }
-  // async createBillingPortal(email: string): Promise<{ url: string }> {
-  //   // Récupère le client Stripe existant
-  //   const customers = await this.stripe.customers.list({ email });
-  //   if (!customers.data.length) {
-  //     throw new NotFoundException('Client Stripe non trouvé');
-  //   }
-  //   // Crée une session sur le Customer Portal
-  //   const session = await this.stripe.billingPortal.sessions.create({
-  //     customer: customers.data[0].id,
-  //     return_url: process.env.FRONT_URL || 'http://localhost:5173/dashboard',
+  // async getAvailablePlansForUser(userId: number): Promise<SubscriptionPlan[]> {
+  //   const currentSubscription = await this.subscriptionRepo.findOne({
+  //     where: { user: { id: userId }, isActive: true },
+  //     relations: ['subscriptionPlan'],
   //   });
-  //   return { url: session.url };
+
+  //   const currentPlanId = currentSubscription?.subscriptionPlan?.id ?? null;
+
+  //   if (currentPlanId) {
+  //     return this.planRepo
+  //       .createQueryBuilder('plan')
+  //       .where('plan.id != :currentPlanId', { currentPlanId })
+  //       .getMany();
+  //   }
+
+  //   // S’il n’a pas d’abonnement actif, on retourne tous les plans
+  //   return this.planRepo.find();
   // }
 }

@@ -58,6 +58,7 @@ export class PaymentService {
       await this.paymentRepo.save(payment);
 
       subscription.payments.push(payment);
+      subscription.stripeSubscriptionId = stripeId;
 
       await this.subscriptionRepo.save(subscription);
 
@@ -91,7 +92,7 @@ export class PaymentService {
     const payments = await this.paymentRepo
       .createQueryBuilder('p')
       .innerJoinAndSelect('p.subscription', 'subscription')
-      .leftJoinAndSelect('subscription.subscriptionPlan', 'plan')
+      .leftJoinAndSelect('p.subscriptionPlan', 'plan')
       .where('subscription.user = :user', { user: userId })
       .getMany();
     return payments;
